@@ -1,13 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
-import { useState } from 'react'
-import { Button, Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Button } from '@headlessui/react'
 import { signIn, signOut, useSession } from "next-auth/react";
 
 const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'Submit', href: '/submit' },
-  { name: 'Leaderboard', href: '/leaderboard' },
+  { name: 'Home', href: '/', public: true},
+  { name: 'Leaderboard', href: '/leaderboard', public: true},
+  { name: 'Submit', href: '/submit', public: true},
+  { name: 'My Submissions', href: '/submissions', public: false},
 ]
 
 function Profile() {
@@ -52,6 +51,8 @@ function Profile() {
 
 export default function Header() {
 
+  const { data: sessionData } = useSession();
+
   return (
 
     <header className="bg-white">
@@ -60,7 +61,9 @@ export default function Header() {
 
         <div className="flex flex-1">
           <div className="flex gap-x-12">
-            {navigation.map((item) => (
+            {navigation
+            .filter((item) => item.public || sessionData)
+            .map((item) => (
               <a key={item.name} href={item.href} className="text-sm font-semibold leading-6 text-gray-900">
                 {item.name}
               </a>

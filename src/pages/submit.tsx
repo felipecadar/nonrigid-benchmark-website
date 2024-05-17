@@ -1,19 +1,21 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { DocumentArrowUpIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { Button } from "@headlessui/react";
+import { DocumentIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import DropDownBox from "~/components/listbox";
 
 const datasets = [
-    { key: "single_object", value: "Single Object" },
-    { key: "multi_object", value: "Multi Object" },
-    { key: "scale", value: "Scale" },
-]
+  { key: "single_object", value: "Single Object" },
+  { key: "multi_object", value: "Multi Object" },
+  { key: "scale", value: "Scale" },
+];
 
 export default function Page() {
   const { data: sessionData, status } = useSession();
   const [dataset, setDataset] = useState(datasets[0]!.value);
+  const [files, setFiles] = useState<File[] | null>(null);
 
   if (status === "loading") {
     return (
@@ -41,7 +43,9 @@ export default function Page() {
                 Submit your preductions to the Nonrigid Matching Benchmark.
               </h2>
               <p className="mt-1 text-sm leading-6 text-gray-600">
-                Select the dataset and upload the matching files of the desired splits.
+                Select the dataset and upload the matching files of the desired
+                splits.
+                All results are private by default. You can make them public later.
               </p>
             </div>
 
@@ -76,7 +80,11 @@ export default function Page() {
                       Dataset
                     </label>
                     <div className="mt-2">
-                      <DropDownBox options={datasets} selected={dataset} setSelected={setDataset} />
+                      <DropDownBox
+                        options={datasets}
+                        selected={dataset}
+                        setSelected={setDataset}
+                      />
                     </div>
                   </div>
 
@@ -87,34 +95,53 @@ export default function Page() {
                     >
                       Matching Files
                     </label>
-                    <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
-                      <div className="text-center">
-                        <DocumentArrowUpIcon
-                          className="mx-auto h-12 w-12 text-gray-300"
-                          aria-hidden="true"
-                        />
-                        <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                          <label
-                            htmlFor="file-upload"
-                            className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
-                          >
-                            <span>Upload files</span>
-                            {/* multi files */}
-                            <input
-                              id="file-upload"
-                              name="file-upload"
-                              type="file"
-                                multiple    
-                              className="sr-only"
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs leading-5 text-gray-600">
-                          CSV or TXT up to 20MB
-                        </p>
-                      </div>
-                    </div>
+                    <Button
+                      className="my-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      onClick={() => {
+                        document.getElementById("cover-photo")?.click();
+                      }}
+                    >
+                      <input
+                        type="file"
+                        id="cover-photo"
+                        name="cover-photo"
+                        className="sr-only"
+                        multiple
+                        accept=".txt,.csv"
+                        onChange={(e) => {
+                        if (e.target.files)
+                            setFiles(Array.from(e.target.files));
+                        }}
+                      />
+                      Click to select files
+                    </Button>
+
+                    {/* iterate through files */}
+                    {files && (
+                      <ul className="divide-y divide-gray-900/10">
+                        {[...files].map((file, index) => (
+                          <li key={index} className="flex items-center gap-x-3 py-2">
+                            <DocumentIcon className="w-5 h-5 text-gray-900" />
+                            <span className="text-sm font-semibold leading-6 text-gray-900">
+                              {file.name}
+                            </span>
+                            {/* remove from list */}
+                            <Button
+                              onClick={() => {
+                                const newFiles = [...files];
+                                newFiles.splice(index, 1);
+                                setFiles(newFiles.length ? newFiles : null);
+                              }}
+                            >
+                                <XMarkIcon className="w-5 h-5 text-gray-900" />
+                            </Button>
+
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+
                   </div>
                 </div>
               </div>
