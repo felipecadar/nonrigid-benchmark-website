@@ -5,6 +5,7 @@ import { DocumentIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import DropDownBox from "~/components/listbox";
+import { upload } from '@vercel/blob/client';
 
 const datasets = [
   { key: "single_object", value: "Single Object" },
@@ -16,6 +17,26 @@ export default function Page() {
   const { data: sessionData, status } = useSession();
   const [dataset, setDataset] = useState(datasets[0]!.value);
   const [files, setFiles] = useState<File[] | null>(null);
+
+  const [progress, setProgress] = useState<Record<string, string>>({});
+
+  async function handleFilesSubmission() {
+    if (!files) {
+      return;
+    }
+
+    const promises = files.map(async (file) => {
+      const newBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/matchfile/upload',
+      });
+      setProgress((prev) => ({ ...prev, [file.name]: newBlob.url }));
+      console.log(newBlob);
+    });
+
+    const urls = await Promise.all(promises);
+    console.log(urls);
+  }
 
   if (status === "loading") {
     return (
@@ -147,8 +168,8 @@ export default function Page() {
               </div>
               <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <button
-                  type="submit"
                   className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  onClick={handleFilesSubmission}
                 >
                   Send
                 </button>
