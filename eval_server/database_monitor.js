@@ -15,7 +15,9 @@ async function eval_loop() {
         }
     })
 
-    const dir = process.env.EXPERIMENT_DIR ?  process.env.EXPERIMENT_DIR : './experiments'
+    const dir = process.env.EXPERIMENT_DIR ?  process.env.EXPERIMENT_DIR : '/app/nonrigid_dataset/experiments'
+    const dataset_dir = process.env.DATASET_DIR ?  process.env.DATASET_DIR : '/app/nonrigid_dataset'
+
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir)
     }
