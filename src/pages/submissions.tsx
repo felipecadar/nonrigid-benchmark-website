@@ -6,7 +6,7 @@ import DropDownBox from "~/components/listbox";
 import SlideOver from "~/components/slideover";
 import { api } from "~/utils/api";
 
-function EditPanel(props: { experiment: Experiment | null }) {
+function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boolean) => void}) {
   const [name, setName] = useState(props.experiment?.name ?? "");
   const [isPublic, setIsPublic] = useState(props.experiment?.public ?? false);
 
@@ -16,6 +16,7 @@ function EditPanel(props: { experiment: Experiment | null }) {
       console.log("Experiment updated successfully");
       void utils.post.invalidate();
       toast.success("Experiment updated successfully");
+      props.setOpen(false);
     },
     onError: (error) => {
       console.error(error);
@@ -136,7 +137,7 @@ export default function Page() {
         setOpen={setOpenEdit}
         title="Edit Submission"
       >
-        {selectedExperiment && <EditPanel experiment={selectedExperiment} />}
+        {selectedExperiment && <EditPanel experiment={selectedExperiment} setOpen={setOpenEdit} />}
       </SlideOver>
       <div className="px-20">
         <div className="sm:flex sm:items-center">
