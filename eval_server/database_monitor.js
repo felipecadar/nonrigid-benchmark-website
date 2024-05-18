@@ -45,18 +45,14 @@ async function eval_loop() {
         const outPath = path + '.out'
 
         // process file
-        // call python script
-        // const python_bin = '/usr/bin/python3'
-        const python = spawn.spawn('python -m nonrigid_benchmark.evaluate', [
-          '--input',
-          path,
-          '--output',
-          outPath,
-          '--dataset',
-          datasetPath,
-          '--split',
-          experiment.split,
+        const python = spawn.spawn('python', [
+          '-m nonrigid_benchmark.evaluate',
+          `--input ${path}`,
+          `--output ${outPath}`,
+          `--dataset ${datasetPath}`,
+          `--split ${experiment.split}`,
         ])
+        
         python.stdout.on('data', (data) => {
             console.log(`stdout: ${data}`)
         })
