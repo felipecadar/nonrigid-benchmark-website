@@ -11,21 +11,27 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
+enum Status {
+    PENDING
+    PROCESSING
+    FAILED
+    COMPLETED
+}
 
 model Experiment {
     id        String @id @default(cuid())
     createdAt DateTime @default(now())
 
+    dataset    String
+    split      String
     name      String
+
     ms        Float
     ma        Float
     mr        Float
 
-    processing Float
-    dataset    String
-    split      String
     public     Boolean
-
+    status     Status
     matchFileURL   String
 
     user      User @relation(fields: [userId], references: [id])

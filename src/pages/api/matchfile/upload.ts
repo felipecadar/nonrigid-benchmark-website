@@ -1,5 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import type { NextApiResponse, NextApiRequest } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '~/server/auth';
  
 export default async function handler(
   request: NextApiRequest,
@@ -15,12 +17,15 @@ export default async function handler(
         pathname,
         /* clientPayload */
       ) => {
-        // Generate a client token for the browser to upload the file
-        // ⚠️ Authenticate and authorize users before generating the token.
-        // Otherwise, you're allowing anonymous uploads.
- 
+
+        // get the user id from request headers
+        const session = await getServerSession(request, response, authOptions)
+        if (!session) {
+          throw new Error('Unauthorized');
+        }
+
         return {
-          allowedContentTypes: ['text/plain'],
+          allowedContentTypes: ['text/csv'],
           tokenPayload: JSON.stringify({
             // optional, sent to your server on upload completion
             // you could pass a user id from auth, or a value from clientPayload

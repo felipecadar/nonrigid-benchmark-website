@@ -6,36 +6,87 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import DropDownBox from "~/components/listbox";
 import { upload } from '@vercel/blob/client';
-
+import { api } from "~/utils/api";
+import clsx from "clsx";
 const datasets = [
   { key: "single_object", value: "Single Object" },
   { key: "multi_object", value: "Multi Object" },
   { key: "scale", value: "Scale" },
 ];
 
+const possibleSplits = [
+  "deformation_1", "deformation_2", "deformation_3",
+  "illumination", "viewpoint",
+  "scale_0", "scale_1", "scale_2", "scale_3",
+];
+
+function validateSplit(fname: string) {
+  const splits = fname.split(".")[0]?.split("-")
+  if (!splits) {
+    return false;
+  }
+  // make sure all splits are present in the possible splits
+  return splits.every((split) => possibleSplits.includes(split))
+}
+
+
 export default function Page() {
   const { data: sessionData, status } = useSession();
   const [dataset, setDataset] = useState(datasets[0]!.value);
   const [files, setFiles] = useState<File[] | null>(null);
-
+  const [identifier, setIdentifier] = useState<string>("");
   const [progress, setProgress] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const { mutate:submitExperiment } = api.post.submission.useMutation();
 
   async function handleFilesSubmission() {
     if (!files) {
       return;
     }
 
+    if (!sessionData) {
+      return;
+    }
+
+    setSubmitting(true);
+
     const promises = files.map(async (file) => {
-      const newBlob = await upload(file.name, file, {
+      if (!validateSplit(file.name)) {
+        return;
+      }
+      
+      const splits = file.name.split(".")[0]?.split("-")
+      
+      // sort and join splits
+      const split = splits!.sort().join("-")
+
+      const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}`
+
+      const newBlob = await upload(file_route, file, {
         access: 'public',
         handleUploadUrl: '/api/matchfile/upload',
       });
+
       setProgress((prev) => ({ ...prev, [file.name]: newBlob.url }));
-      console.log(newBlob);
+
+      return {
+        split,
+        url: newBlob.url,
+      };
+
     });
 
-    const urls = await Promise.all(promises);
-    console.log(urls);
+    const split_urls = (await Promise.all(promises)).filter((x) => x !== undefined);
+  
+
+    submitExperiment({
+      dataset,
+      files: split_urls,
+      identifier,
+    });
+
+
   }
 
   if (status === "loading") {
@@ -88,6 +139,8 @@ export default function Page() {
                           id="website"
                           className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           placeholder="SIFT-1024-Ratio0.7"
+                          value={identifier}
+                          onChange={(e) => setIdentifier(e.target.value)}
                         />
                       </div>
                     </div>
@@ -111,7 +164,7 @@ export default function Page() {
 
                   <div className="col-span-full">
                     <label
-                      htmlFor="cover-photo"
+                      // htmlFor="cover-photo"
                       className="block text-sm font-medium leading-6 text-gray-900"
                     >
                       Matching Files
@@ -119,13 +172,13 @@ export default function Page() {
                     <Button
                       className="my-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                       onClick={() => {
-                        document.getElementById("cover-photo")?.click();
+                        document.getElementById("matchfile-input")?.click();
                       }}
                     >
                       <input
                         type="file"
-                        id="cover-photo"
-                        name="cover-photo"
+                        id="matchfile-input"
+                        name="matchfile-input"
                         className="sr-only"
                         multiple
                         accept=".txt,.csv"
@@ -141,10 +194,13 @@ export default function Page() {
                     {files && (
                       <ul className="divide-y divide-gray-900/10">
                         {[...files].map((file, index) => (
-                          <li key={index} className="flex items-center gap-x-3 py-2">
+                          <li key={index} className={clsx(`flex items-center gap-x-3 py-2`,
+                            validateSplit(file.name) ? "" : "bg-red-200"
+                          )}>
                             <DocumentIcon className="w-5 h-5 text-gray-900" />
                             <span className="text-sm font-semibold leading-6 text-gray-900">
                               {file.name}
+                              {validateSplit(file.name) ? "" : " - Invalid Split"}
                             </span>
                             {/* remove from list */}
                             <Button
@@ -162,14 +218,27 @@ export default function Page() {
                       </ul>
                     )}
 
+                    {/* show progress */}
+
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 ">
+                      <div className="bg-indigo-600 h-2.5 rounded-full" style={{width: 
+                        Object.keys(progress).length
+                          ? `${(Object.keys(progress).length / files!.length) * 100}%`
+                          : `0%`
+                      }}></div>
+                    </div>
 
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <button
-                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  onClick={handleFilesSubmission}
+                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void handleFilesSubmission();
+                  }}
+                  disabled={submitting || !files || files.map((file) => validateSplit(file.name)).includes(false) || !identifier}
                 >
                   Send
                 </button>
