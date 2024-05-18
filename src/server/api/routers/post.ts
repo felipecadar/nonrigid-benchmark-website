@@ -75,6 +75,10 @@ export const postRouter = createTRPCRouter({
       where: {
         userId: user.id,
       },
+      // sort from newest to oldest
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return {
@@ -83,5 +87,47 @@ export const postRouter = createTRPCRouter({
   }
   ),
 
+  getPublicSubmissions: publicProcedure
+  .query(async () => {
+    const submissions = await db.experiment.findMany({
+      where: {
+        status: "COMPLETED",
+        public: true,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return {
+      submissions,
+    };
+  }
+  ),
+
+  editSubmission: protectedProcedure
+  .input(z.object({
+    id: z.string(),
+    name: z.string(),
+    public: z.boolean(),
+  }))
+  .mutation(async ({ input }) => {
+    const { id, name, public: isPublic } = input;
+
+    await db.experiment.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+        public: isPublic,
+      },
+    });
+
+    return {
+      success: true,
+    };
+  }),
 
 });

@@ -66,13 +66,9 @@ export default function Page() {
     setSubmitting(true);
 
     const promises = files.map(async (file) => {
-      if (!validateSplit(file.name)) {
-        return;
-      }
-      
-      const splits = file.name.split(".")[0]?.split("-")
-      
+
       // sort and join splits
+      const splits = file.name.split(".")[0]?.split("-")
       const split = splits!.sort().join("-")
 
       const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}`
@@ -91,9 +87,8 @@ export default function Page() {
 
     });
 
-    const split_urls = (await Promise.all(promises)).filter((x) => x !== undefined);
+    const split_urls = await Promise.all(promises)
   
-
     submitExperiment({
       dataset,
       files: split_urls,
