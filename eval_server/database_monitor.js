@@ -45,7 +45,7 @@ async function eval_loop() {
         const outPath = path + '.out'
 
         // process file
-        const python = spawn.spawn('python', [
+        const python = spawn.spawn('eval_server/run_python.sh', [
           '-m nonrigid_benchmark.evaluate',
           `--input ${path}`,
           `--output ${outPath}`,
