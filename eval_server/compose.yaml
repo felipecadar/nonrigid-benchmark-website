@@ -1,0 +1,16 @@
+services:
+  eval_server:
+    build:
+      context: .
+      dockerfile: DockerEval/Dockerfile
+
+    # environment variables
+    environment:
+      - POSTGRES_PRISMA_URL=
+      - POSTGRES_URL_NON_POOLING=
+      - EXPERIMENT_DIR="/app/nonrigid_dataset/experiments"
+      - DATASET_DIR="/app/nonrigid_dataset/"
+
+    # volumes
+    volumes:
+      - /volumes/nonrigid_dataset:/app/nonrigid_dataset/

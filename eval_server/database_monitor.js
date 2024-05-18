@@ -4,7 +4,6 @@
 import { PrismaClient, Status } from '@prisma/client'
 import fs from 'fs'
 import spawn from 'child_process'
-// const http = require('http'); // or 'https' for https:// URLs
 import fetch from 'node-fetch'
 const prisma = new PrismaClient()
 const thisDir = fs.realpathSync(process.cwd())
@@ -33,14 +32,16 @@ async function eval_loop() {
 
         fs.writeFileSync(path, buffer)
         console.log(`Downloaded ${matchFileURL} to ${path}`)
-
+        const outPath = path + '.out'
 
         // process file
         // call python script
-        const python = spawn.spawn(`python`, [
-          `${thisDir}/eval_server/process.py`, 
+        const python = spawn.spawn(`python3`, [
+          '-m nonrigid_benchmark.evaluate', 
           '--input',
           path,
+          '--output',
+          outPath,
           '--dataset',
           experiment.dataset,
           '--split',
