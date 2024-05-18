@@ -227,9 +227,6 @@ export default function Page() {
                         </td>
                       )}
 
-                      {/* <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {exp.public ? "Public" : "Private"}
-                      </td> */}
                       <td className={clsx("whitespace-nowrap px-3 py-4 text-sm", exp.public ? "text-green-500" : "text-blue-500")}>
                         {exp.public ? "Public" : "Private"}
                       </td>
