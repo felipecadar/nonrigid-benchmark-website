@@ -46,7 +46,8 @@ async function eval_loop() {
 
         // process file
         // call python script
-        const python = spawn.spawn(`python3`, [
+        // const python_bin = '/usr/bin/python3'
+        const python = spawn.spawn(`python`, [
           '-m nonrigid_benchmark.evaluate', 
           '--input',
           path,
@@ -64,29 +65,35 @@ async function eval_loop() {
         python.stderr.on('data', (data) => {
             console.error(`stderr: ${data}`)
         })
+
+        python.on('error', (error) => {
+            console.error(`error: ${error.message}`)
+        }
+        )
         
-        // on start
-        python.on('spawn', async () => {
-          await prisma.experiment.update({
-              where: {
-                  id: experiment.id
-              },
-              data: {
-                  status: Status.PROCESSING
-              }
-          })        
-        })
+        // // on start
+        // python.on('spawn', async () => {
+        //   await prisma.experiment.update({
+        //       where: {
+        //           id: experiment.id
+        //       },
+        //       data: {
+        //           status: Status.PROCESSING
+        //       }
+        //   })        
+        // })
 
         python.on('close', async (code) => {
             console.log(`child process exited with code ${code}`)
-            // read file + .out 
-            const outPath = path + '.out'
-            const out = fs.readFileSync(outPath, 'utf8')
-            // parse ms,ma,mr
-            const [ms, ma, mr] = out.split(',')
-            // update experiment
 
             if (code === 0) {
+                // read file + .out 
+                const outPath = path + '.out'
+                const out = fs.readFileSync(outPath, 'utf8')
+                // parse ms,ma,mr
+                const [ms, ma, mr] = out.split(',')
+                // update experiment
+
                 // update status
                 await prisma.experiment.update({
                     where: {
@@ -102,14 +109,14 @@ async function eval_loop() {
                 console.log(`ms: ${ms}, ma: ${ma}, mr: ${mr}`)
             } else {
                 // update status
-                await prisma.experiment.update({
-                    where: {
-                        id: experiment.id
-                    },
-                    data: {
-                        status: Status.ERROR
-                    }
-                })
+                // await prisma.experiment.update({
+                //     where: {
+                //         id: experiment.id
+                //     },
+                //     data: {
+                //         status: Status.ERROR
+                //     }
+                // })
                 console.error(`Error processing experiment ${experiment.id}`)
             }
         })
