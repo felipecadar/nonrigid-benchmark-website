@@ -25,7 +25,8 @@ export default async function handler(
         }
 
         return {
-          allowedContentTypes: ['text/json'],
+          // allow json text files
+          allowedContentTypes: ['application/json'],
           tokenPayload: JSON.stringify({
             // optional, sent to your server on upload completion
             // you could pass a user id from auth, or a value from clientPayload
