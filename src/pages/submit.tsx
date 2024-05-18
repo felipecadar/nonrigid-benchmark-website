@@ -190,7 +190,7 @@ export default function Page() {
                         name="matchfile-input"
                         className="sr-only"
                         multiple
-                        accept=".txt,.csv"
+                        accept=".json"
                         onChange={(e) => {
                         if (e.target.files)
                             setFiles(Array.from(e.target.files));
