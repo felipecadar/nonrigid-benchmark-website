@@ -15,8 +15,14 @@ async function eval_loop() {
         }
     })
 
-    const dir = process.env.EXPERIMENT_DIR ?  process.env.EXPERIMENT_DIR : '/app/nonrigid_dataset/experiments'
-    const dataset_dir = process.env.DATASET_DIR ?  process.env.DATASET_DIR : '/app/nonrigid_dataset'
+    const dir = '/volumes/nonrigid_dataset/experiments'
+    const dataset_dir = '/volumes/nonrigid_dataset/dataset'
+
+    const dataset_mapping = {
+        'Multiple Object': 'test_multiple_obj',
+        'Single Object': 'test_single_obj',
+        'Scale': 'test_scale',
+    }
 
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir)
@@ -27,6 +33,8 @@ async function eval_loop() {
         const matchFileURL = experiment.matchFileURL
         const path = `${dir}/${experiment.id}.json`
         console.log(`Downloading ${matchFileURL} to ${path}`)
+
+        const datasetPath = `${dataset_dir}/${dataset_mapping[experiment.dataset]}/`
 
         // download file
         const response = await fetch(matchFileURL)
@@ -45,7 +53,7 @@ async function eval_loop() {
           '--output',
           outPath,
           '--dataset',
-          experiment.dataset,
+          datasetPath,
           '--split',
           experiment.split,
         ])
