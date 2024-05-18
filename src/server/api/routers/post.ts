@@ -63,5 +63,25 @@ export const postRouter = createTRPCRouter({
 
   }),
 
+  getSubmissions: protectedProcedure
+  .query(async ({ ctx }) => {
+    const { user } = ctx.session;
+
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    const submissions = await db.experiment.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    return {
+      submissions,
+    };
+  }
+  ),
+
 
 });

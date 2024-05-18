@@ -8,6 +8,7 @@ import DropDownBox from "~/components/listbox";
 import { upload } from '@vercel/blob/client';
 import { api } from "~/utils/api";
 import clsx from "clsx";
+import { toast } from "react-toastify";
 const datasets = [
   { key: "single_object", value: "Single Object" },
   { key: "multi_object", value: "Multi Object" },
@@ -38,7 +39,20 @@ export default function Page() {
   const [progress, setProgress] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const { mutate:submitExperiment } = api.post.submission.useMutation();
+  const { mutate:submitExperiment } = api.post.submission.useMutation({
+    onSuccess: () => {
+      setFiles([]);
+      setIdentifier("");
+      setSubmitting(false);
+      setProgress({});
+      toast.success("Experiment submitted successfully.");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to submit the experiment. Please try again later.");
+      setSubmitting(false);
+    }
+  });
 
   async function handleFilesSubmission() {
     if (!files) {
