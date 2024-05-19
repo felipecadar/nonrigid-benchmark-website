@@ -40,9 +40,13 @@ async function eval_loop() {
         const matchFileURL = experiment.matchFileURL
         const path = `${dir}/${experiment.id}.json`
         console.log(`Downloading ${matchFileURL} to ${path}`)
-
-        const real_url = await supabase.storage.from('nonrigid-benchmark').createSignedUrl(matchFileURL, 60)
-        console.log("real_url", real_url)
+         
+        const {data, error} = await supabase.storage.from('nonrigid-benchmark').createSignedUrl(matchFileURL, 60)
+        if (error) {
+            console.error(error)
+            continue
+        }
+        const real_url = data.signedUrl
 
         const datasetPath = `${dataset_dir}/${dataset_mapping[experiment.dataset]}/`
 
