@@ -5,6 +5,13 @@ import { PrismaClient, Status } from '@prisma/client'
 import fs from 'fs'
 import spawn from 'child_process'
 import fetch from 'node-fetch'
+
+
+import { createClient } from '@supabase/supabase-js'
+
+// Create a single supabase client for interacting with your database
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+
 const prisma = new PrismaClient()
 const thisDir = fs.realpathSync(process.cwd())
 
@@ -34,11 +41,15 @@ async function eval_loop() {
         const path = `${dir}/${experiment.id}.json`
         console.log(`Downloading ${matchFileURL} to ${path}`)
 
+        const real_url = await supabase.storage.from('nonrigid-benchmark').createSignedUrl(matchFileURL, 60)
+        console.log("real_url", real_url)
+
         const datasetPath = `${dataset_dir}/${dataset_mapping[experiment.dataset]}/`
 
         // download file
-        const response = await fetch(matchFileURL)
+        const response = await fetch(real_url)
         const buffer = await response.text()
+        let ended = false
 
         fs.writeFileSync(path, buffer)
         console.log(`Downloaded ${matchFileURL} to ${path}`)
@@ -63,23 +74,25 @@ async function eval_loop() {
 
         python.on('error', (error) => {
             console.error(`error: ${error.message}`)
+            ended = true
         }
         )
         
-        // // on start
-        // python.on('spawn', async () => {
-        //   await prisma.experiment.update({
-        //       where: {
-        //           id: experiment.id
-        //       },
-        //       data: {
-        //           status: Status.PROCESSING
-        //       }
-        //   })        
-        // })
+        // on start
+        python.on('spawn', async () => {
+          await prisma.experiment.update({
+              where: {
+                  id: experiment.id
+              },
+              data: {
+                  status: Status.PROCESSING
+              }
+          })        
+        })
 
         python.on('close', async (code) => {
             console.log(`child process exited with code ${code}`)
+            ended = true
 
             if (code === 0) {
                 // read file + .out 
@@ -104,19 +117,22 @@ async function eval_loop() {
                 console.log(`ms: ${ms}, ma: ${ma}, mr: ${mr}`)
             } else {
                 // update status
-                // await prisma.experiment.update({
-                //     where: {
-                //         id: experiment.id
-                //     },
-                //     data: {
-                //         status: Status.ERROR
-                //     }
-                // })
+                await prisma.experiment.update({
+                    where: {
+                        id: experiment.id
+                    },
+                    data: {
+                        status: Status.ERROR
+                    }
+                })
                 console.error(`Error processing experiment ${experiment.id}`)
             }
+
         })
 
-
+        while (!ended) {
+            await new Promise(r => setTimeout(r, 1000))
+        }
 
     }
 }
