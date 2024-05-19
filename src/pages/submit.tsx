@@ -74,30 +74,24 @@ export default function Page() {
       // sort and join splits
       const splits = file.name.split(".")[0]?.split("-")
       const split = splits!.sort().join("-")
-      const unique_id = randomUUID();
+      const unique_id = crypto.randomUUID();
       const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}.${unique_id}`
-
-      // const newBlob = await upload(file_route, file, {
-      //   access: 'public',
-      //   handleUploadUrl: '/api/matchfile/upload',
-      // });
 
       const {data, error} = await supabase
         .storage
         .from('nonrigid-benchmark')
         .upload(file_route, file);
-
-      // setProgress((prev) => ({ ...prev, [file.name]: newBlob.url }));
-      console.log(data, error)
-
-      if (error) {
-        setSubmitting(false);
-        return {
-          split: "",
-          url: "",
+        
+        if (error) {
+          setSubmitting(false);
+          return {
+            split: "",
+            url: "",
+          }
         }
-      }
-
+        setProgress((prev) => ({ ...prev, [file.name]: data.path }));
+        console.log(data, error)
+        
       return {
         split,
         url: data.path,
