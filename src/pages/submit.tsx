@@ -9,6 +9,8 @@ import { upload } from '@vercel/blob/client';
 import { api } from "~/utils/api";
 import clsx from "clsx";
 import { toast } from "react-toastify";
+import { createClient } from "~/utils/supabase/client";
+import { randomUUID } from "crypto";
 const datasets = [
   { key: "single_object", value: "Single Object" },
   { key: "multi_object", value: "Multi Object" },
@@ -32,6 +34,8 @@ function validateSplit(fname: string) {
 
 
 export default function Page() {
+  const supabase = createClient();
+
   const { data: sessionData, status } = useSession();
   const [dataset, setDataset] = useState(datasets[0]!.value);
   const [files, setFiles] = useState<File[] | null>(null);
@@ -70,24 +74,45 @@ export default function Page() {
       // sort and join splits
       const splits = file.name.split(".")[0]?.split("-")
       const split = splits!.sort().join("-")
+      const unique_id = randomUUID();
+      const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}.${unique_id}`
 
-      const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}`
+      // const newBlob = await upload(file_route, file, {
+      //   access: 'public',
+      //   handleUploadUrl: '/api/matchfile/upload',
+      // });
 
-      const newBlob = await upload(file_route, file, {
-        access: 'public',
-        handleUploadUrl: '/api/matchfile/upload',
-      });
+      const {data, error} = await supabase
+        .storage
+        .from('nonrigid-benchmark')
+        .upload(file_route, file);
 
-      setProgress((prev) => ({ ...prev, [file.name]: newBlob.url }));
+      // setProgress((prev) => ({ ...prev, [file.name]: newBlob.url }));
+      console.log(data, error)
+
+      if (error) {
+        setSubmitting(false);
+        return {
+          split: "",
+          url: "",
+        }
+      }
 
       return {
         split,
-        url: newBlob.url,
+        url: data.path,
       };
 
     });
 
     const split_urls = await Promise.all(promises)
+
+    // if any of the files failed to upload, return error
+    if (split_urls.some((split) => !split.url)) {
+      toast.error("Failed to upload the file. Please try again later.");
+      setSubmitting(false);
+      return;
+    }
   
     submitExperiment({
       dataset,
