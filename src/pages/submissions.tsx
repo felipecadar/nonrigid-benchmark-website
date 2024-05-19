@@ -24,6 +24,19 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
     },
   });
 
+  const { mutate: deleteExperiment } = api.post.deleteSubmission.useMutation({
+    onSuccess: () => {
+      console.log("Experiment deleted successfully");
+      void utils.post.invalidate();
+      toast.success("Experiment deleted successfully");
+      props.setOpen(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to delete the experiment. Please try again later.");
+    },
+  });
+
   function handleUpdate() {
     if (!props.experiment) {
       return;
@@ -34,6 +47,21 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
       name,
       public: isPublic,
     });
+  }
+
+  function handleDelete() {
+    if (!props.experiment) {
+      return;
+    }
+
+    const confirm = window.confirm(
+      "Are you sure you want to delete this experiment?"
+    );
+
+    if (!confirm) {
+      return;
+    }
+    deleteExperiment({id: props.experiment.id});
   }
 
   if (!props.experiment) {
@@ -118,6 +146,19 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
         >
           Save
         </button>
+      </div>
+      <div className="col-span-6  border-2 border-dashed rounded-xl p-2 bg-red-100 border-red-600">
+        <div className="flex flex-col items-center justify-between ">
+        <p className="text-red-600 font-semibold">Danger Zone</p>
+        {/* spacing */}
+        <div className="h-4"></div>
+        <button
+          onClick={handleDelete}
+          className="rounded-md w-full bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+          Delete
+        </button>
+          </div>
       </div>
 
     </div>
