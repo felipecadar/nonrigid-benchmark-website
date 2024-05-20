@@ -79,6 +79,14 @@ async function eval_loop() {
         python.on('error', (error) => {
             console.error(`error: ${error.message}`)
             ended = true
+            await prisma.experiment.update({
+                where: {
+                    id: experiment.id
+                },
+                data: {
+                    status: Status.ERROR
+                }
+            })
         }
         )
         
