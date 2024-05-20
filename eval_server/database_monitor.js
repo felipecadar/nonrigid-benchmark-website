@@ -84,7 +84,7 @@ async function eval_loop() {
                     id: experiment.id
                 },
                 data: {
-                    status: Status.ERROR
+                    status: Status.FAILED
                 }
             })
         }
@@ -134,7 +134,7 @@ async function eval_loop() {
                         id: experiment.id
                     },
                     data: {
-                        status: Status.ERROR
+                        status: Status.FAILED
                     }
                 })
                 console.error(`Error processing experiment ${experiment.id}`)
