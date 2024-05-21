@@ -20,7 +20,7 @@ const datasets = [
 const possibleSplits = [
   "deformation_1", "deformation_2", "deformation_3",
   "illumination", "viewpoint",
-  "scale_0", "scale_1", "scale_2", "scale_3",
+  "scale_0", "scale_1", "scale_2", "scale_3", "scale_4",
 ];
 
 function validateSplit(fname: string) {
