@@ -9,6 +9,21 @@ import { api } from "~/utils/api";
 type Dataset = Record<string, Experiment[]>;
 
 function ExperimentsTable({ experiments }: { experiments: Experiment[] }) {
+
+  // by split
+  const splits = experiments.reduce((acc: Dataset, exp) => {
+    if (!acc[exp.split]) {
+      acc[exp.split] = [];
+    }
+    acc[exp.split]!.push(exp);
+    return acc;
+  }, {});
+
+  // sort each split by ms
+  Object.keys(splits).forEach((split) => {
+    splits[split]!.sort((a, b) => b.ms - a.ms);
+  });
+
   return (
     <div className="mt-8 flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -52,7 +67,7 @@ function ExperimentsTable({ experiments }: { experiments: Experiment[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {experiments.map((exp) => (
+              {/* {experiments.map((exp) => (
                 <tr key={exp.id}>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                     {exp.name}
@@ -70,7 +85,46 @@ function ExperimentsTable({ experiments }: { experiments: Experiment[] }) {
                     {new Date(exp.createdAt).toLocaleString()}
                   </td>
                 </tr>
-              ))}
+              ))} */}
+              {/* list the split title and then the experiments */}
+              {Object.keys(splits).map((split) => {
+                return (
+                  <>
+                    <tr key={split}>
+                      <td className="px-3 py-4 text-sm text-gray-500"></td>
+                      <td className="px-3 py-4 text-sm text-gray-500"></td>
+                      <td className="py-4 text-gray-900 font-bold">
+                        {split}
+                      </td>
+                      <td className="px-3 py-4 text-sm font-bold"></td>
+                      <td className="px-3 py-4 text-sm text-gray-500"></td>
+                    </tr>
+                    {splits[split]!.map((exp) => (
+                      <tr key={exp.id}>
+                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                          {exp.name}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {exp.dataset}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {exp.split}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm font-bold">
+                          {exp.ms.toFixed(2)}/{exp.ma.toFixed(2)}/{exp.mr.toFixed(2)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {new Date(exp.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+
+                )
+              })}
+
+
+
             </tbody>
           </table>
         </div>
