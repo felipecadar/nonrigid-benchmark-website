@@ -13,7 +13,7 @@ import { createClient } from "~/utils/supabase/client";
 import { randomUUID } from "crypto";
 const datasets = [
   { key: "single_object", value: "Single Object" },
-  { key: "multi_object", value: "Multi Object" },
+  { key: "multi_object", value: "Multiple Object" },
   { key: "scale", value: "Scale" },
 ];
 
