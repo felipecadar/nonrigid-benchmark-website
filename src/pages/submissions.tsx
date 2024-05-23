@@ -1,6 +1,6 @@
 import type { Experiment } from "@prisma/client";
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DropDownBox from "~/components/listbox";
 import SlideOver from "~/components/slideover";
@@ -171,6 +171,64 @@ export default function Page() {
   const [selectedExperiment, setSelectedExperiment] =
     useState<Experiment | null>(null);
 
+  const [names, setNames] = useState<string[]>([]);
+  const [datasets, setDatasets] = useState<string[]>([]);
+  const [splits, setSplits] = useState<string[]>([]);
+
+  const [nameFilter, setNameFilter] = useState<string | null>(null);
+  const [datasetFilter, setDatasetFilter] = useState<string | null>(null);
+  const [splitFilter, setSplitFilter] = useState<string | null>(null);
+
+  const [filteredExperiments, setFilteredExperiments] = useState<Experiment[]>([]);
+
+  
+  useEffect(() => {
+    if (experiments) {
+      // get unique names
+      const uniqueNames = Array.from(
+        new Set(experiments.submissions.map((exp) => exp.name))
+      )
+      uniqueNames.push("All");
+      setNames(uniqueNames);
+
+      // get unique datasets
+      const uniqueDatasets = Array.from(
+        new Set(experiments.submissions.map((exp) => exp.dataset))
+      )
+      uniqueDatasets.push("All");
+      setDatasets(uniqueDatasets);
+
+      // get unique splits
+      const uniqueSplits = Array.from(
+        new Set(experiments.submissions.map((exp) => exp.split))
+      )
+      uniqueSplits.push("All");
+      setSplits(uniqueSplits);
+    }
+  }, [experiments]);
+
+  useEffect(() => {
+    if (!experiments) {
+      return;
+    }
+
+    let filtered = experiments.submissions;
+
+    if (nameFilter && nameFilter !== "All") {
+      filtered = filtered.filter((exp) => exp.name === nameFilter);
+    }
+
+    if (datasetFilter && datasetFilter !== "All") {
+      filtered = filtered.filter((exp) => exp.dataset === datasetFilter);
+    }
+
+    if (splitFilter && splitFilter !== "All") {
+      filtered = filtered.filter((exp) => exp.split === splitFilter);
+    }
+
+    setFilteredExperiments(filtered);
+  }, [experiments, nameFilter, datasetFilter, splitFilter]);
+
   return (
     <>
       <SlideOver
@@ -186,6 +244,62 @@ export default function Page() {
             <h1 className="my-10 text-base font-semibold leading-6 text-gray-900">
               Submissions
             </h1>
+
+            {/* selectors dropdown */}
+            <div className="grid grid-cols-6 gap-x-6 gap-y-8">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium leading-6 text-gray-900">
+                  Name
+                </label>
+                <div className="mt-2">
+                  <DropDownBox
+                    options={names.map((name) => ({ key: name, value: name }))}
+                    selected={nameFilter ?? "All"}
+                    setSelected={(selected) =>
+                      setNameFilter(selected === "All" ? null : selected)
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium leading-6 text-gray-900">
+                  Dataset
+                </label>
+                <div className="mt-2">
+                  <DropDownBox
+                    options={datasets.map((dataset) => ({
+                      key: dataset,
+                      value: dataset,
+                    }))}
+                    selected={datasetFilter ?? "All"}
+                    setSelected={(selected) =>
+                      setDatasetFilter(selected === "All" ? null : selected)
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium leading-6 text-gray-900">
+                  Split
+                </label>
+                <div className="mt-2">
+                  <DropDownBox
+                    options={splits.map((split) => ({
+                      key: split,
+                      value: split,
+                    }))}
+                    selected={splitFilter ?? "All"}
+                    setSelected={(selected) =>
+                      setSplitFilter(selected === "All" ? null : selected)
+                    }
+                  />
+                </div>
+              </div>
+
+              </div>
+
           </div>
         </div>
         <div className="mt-8 flow-root">
@@ -239,7 +353,7 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {experiments?.submissions
+                  {filteredExperiments
                   .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                   .map((exp) => (
                     <tr key={exp.id}>
