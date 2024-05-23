@@ -239,7 +239,9 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {experiments?.submissions.map((exp) => (
+                  {experiments?.submissions
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .map((exp) => (
                     <tr key={exp.id}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                         {exp.name}
