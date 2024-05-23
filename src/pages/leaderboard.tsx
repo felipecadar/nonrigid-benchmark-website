@@ -24,6 +24,41 @@ function ExperimentsTable({ experiments }: { experiments: Experiment[] }) {
     splits[split]!.sort((a, b) => b.ms - a.ms);
   });
 
+
+  const preferred_order = [
+    "deformation_3-scale_4",
+    "deformation_2-scale_4",
+    "deformation_1-scale_4",
+    "scale_4",
+    "deformation_3-scale_3",
+    "deformation_2-scale_3",
+    "deformation_1-scale_3",
+    "scale_3",
+    "deformation_3-scale_2",
+    "deformation_2-scale_2",
+    "deformation_1-scale_2",
+    "scale_2",
+    "deformation_3-scale_1",
+    "deformation_2-scale_1",
+    "deformation_1-scale_1",
+    "scale_1",
+    "deformation_3",
+    "deformation_3-viewpoint",
+    "deformation_3-illumination",
+    "deformation_3-illumination-viewpoint",
+    "deformation_2",
+    "deformation_2-viewpoint",
+    "deformation_2-illumination",
+    "deformation_2-illumination-viewpoint",
+    "deformation_1",
+    "deformation_1-viewpoint",
+    "deformation_1-illumination",
+    "deformation_1-illumination-viewpoint",
+    "illumination-viewpoint",
+    "viewpoint",
+    "illumination",
+  ]
+
   return (
     <div className="mt-8 flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -67,27 +102,9 @@ function ExperimentsTable({ experiments }: { experiments: Experiment[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {/* {experiments.map((exp) => (
-                <tr key={exp.id}>
-                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                    {exp.name}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {exp.dataset}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {exp.split}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm font-bold">
-                    {exp.ms.toFixed(2)}/{exp.ma.toFixed(2)}/{exp.mr.toFixed(2)}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {new Date(exp.createdAt).toLocaleString()}
-                  </td>
-                </tr>
-              ))} */}
-              {/* list the split title and then the experiments */}
-              {Object.keys(splits).map((split) => {
+              {Object.keys(splits)
+              .sort((a, b) => preferred_order.indexOf(a) - preferred_order.indexOf(b))
+              .map((split) => {
                 return (
                   <>
                     <tr key={split}>
@@ -155,6 +172,12 @@ export default function Page() {
     return acc;
   }, {});
 
+  const preferred_order = [
+    'Single Object',
+    'Multiple Object',
+    'Scale',
+  ]
+
   return (
     <>
       <div className="px-20">
@@ -167,7 +190,9 @@ export default function Page() {
         </div>
 
         {datasets &&
-          Object.keys(datasets).map((dataset) => (
+          Object.keys(datasets)
+          .sort((a, b) => preferred_order.indexOf(a) - preferred_order.indexOf(b))
+          .map((dataset) => (
             <div key={dataset} className="mt-8">
               <h2 className="text-lg font-semibold leading-6 text-gray-900">
                 {dataset}
