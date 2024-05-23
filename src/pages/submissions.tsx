@@ -261,10 +261,10 @@ export default function Page() {
                         // COMPLETED PENDING FAILED PROCESSING
                         <td
                           className={clsx(
-                            "whitespace-nowrap px-3 py-4 text-sm text-gray-500",
+                            "whitespace-nowrap px-3 py-4 text-sm",
+                            exp.status == "PROCESSING" && "text-blue-500",
                             exp.status == "PENDING" && "text-yellow-500",
                             exp.status == "FAILED" && "text-red-500",
-                            exp.status == "PROCESSING" && "text-blue-500",
                           )}
                         >
                           {exp.status}
