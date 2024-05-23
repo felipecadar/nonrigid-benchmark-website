@@ -16,12 +16,6 @@ const prisma = new PrismaClient()
 const thisDir = fs.realpathSync(process.cwd())
 
 async function eval_loop() {
-    const all_not_processed = await prisma.experiment.findMany({
-        where: {
-            status: Status.PENDING
-        }
-    })
-
     const dir = '/volumes/nonrigid_dataset/experiments'
     const dataset_dir = '/volumes/nonrigid_dataset/dataset'
 
@@ -33,6 +27,28 @@ async function eval_loop() {
 
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir)
+    }
+
+    // const all_not_processed = await prisma.experiment.findMany({
+    //     where: {
+    //         status: Status.PENDING
+    //     }
+    // })
+
+    // get oldest experiment with status pending
+    const all_not_processed = await prisma.experiment.findMany({
+        where: {
+            status: Status.PENDING
+        },
+        orderBy: {
+            createdAt: 'asc'
+        },
+        take: 1
+    })
+
+    if (all_not_processed.length === 0) {
+        console.log('No experiments to process')
+        return
     }
 
     for (const experiment of all_not_processed) {
@@ -66,6 +82,7 @@ async function eval_loop() {
           `--output ${outPath}`,
           `--dataset ${datasetPath}`,
           `--split ${experiment.split}`,
+          `--nproc 4`,
         ])
         
         python.stdout.on('data', (data) => {
