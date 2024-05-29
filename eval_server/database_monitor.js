@@ -50,7 +50,7 @@ async function eval_loop() {
 
     if (all_not_processed.length === 0) {
         console.log('No experiments to process')
-        return
+        continue
     }
 
     for (const experiment of all_not_processed) {
@@ -72,7 +72,7 @@ async function eval_loop() {
                     status: Status.FAILED
                 }
             })
-            continue
+            return false
         }
         const real_url = data.signedUrl
 
@@ -176,12 +176,15 @@ async function eval_loop() {
         }
 
     }
+    return true
 }
 
 async function main() {
   while (true) {
-    await eval_loop()
-    await new Promise(r => setTimeout(r, 10000))
+    const r = await eval_loop()
+    if (r) {
+        await new Promise(r => setTimeout(r, 10000))
+    }
   }
 }
 
