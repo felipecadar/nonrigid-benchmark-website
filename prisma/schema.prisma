@@ -18,6 +18,7 @@ enum Status {
     PROCESSING
     FAILED
     COMPLETED
+    REPROCESS
 }
 
 model Experiment {

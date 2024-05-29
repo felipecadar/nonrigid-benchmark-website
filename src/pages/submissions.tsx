@@ -366,24 +366,23 @@ export default function Page() {
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {exp.split}
                       </td>
-                      {exp.status == "COMPLETED" ? (
-                        <td className="whitespace-nowrap px-3 py-4 text-sm font-bold">
-                          {exp.ms.toFixed(2)}/{exp.ma.toFixed(2)}/
-                          {exp.mr.toFixed(2)}
-                        </td>
-                      ) : (
-                        // COMPLETED PENDING FAILED PROCESSING
+
                         <td
                           className={clsx(
                             "whitespace-nowrap px-3 py-4 text-sm",
+                            exp.status == "COMPLETED" && "whitespace-nowrap px-3 py-4 text-sm font-bold",
                             exp.status == "PROCESSING" && "text-blue-500",
                             exp.status == "PENDING" && "text-yellow-500",
+                            exp.status == "REPROCESS" && "whitespace-nowrap px-3 py-4 text-sm font-bold text-yellow-500",
                             exp.status == "FAILED" && "text-red-500",
                           )}
                         >
-                          {exp.status}
+                          {(exp.status == "COMPLETED" || exp.status == "REPROCESS") ? 
+                            `${exp.ms.toFixed(2)}/${exp.ma.toFixed(2)}/${exp.mr.toFixed(2)}`
+                            : exp.status
+                          }
                         </td>
-                      )}
+
 
                       <td className={clsx("whitespace-nowrap px-3 py-4 text-sm", exp.public ? "text-green-500" : "text-blue-500")}>
                         {exp.public ? "Public" : "Private"}
