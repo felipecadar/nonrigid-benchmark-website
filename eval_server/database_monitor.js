@@ -38,7 +38,9 @@ async function eval_loop() {
     // get oldest experiment with status pending
     const all_not_processed = await prisma.experiment.findMany({
         where: {
-            status: Status.PENDING
+            status: {
+                in: [Status.PENDING, Status.REPROCESS]
+            }
         },
         orderBy: {
             createdAt: 'asc'
