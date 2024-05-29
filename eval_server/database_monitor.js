@@ -16,8 +16,8 @@ const prisma = new PrismaClient()
 const thisDir = fs.realpathSync(process.cwd())
 
 async function eval_loop() {
-    const dir = '/volumes/nonrigid_dataset/experiments'
-    const dataset_dir = '/volumes/nonrigid_dataset/dataset'
+    const dir = process.env.EXPERIMENT_DIR //'/volumes/nonrigid_dataset/experiments'
+    const dataset_dir = process.env.DATASET_DIR //'/volumes/nonrigid_dataset/dataset'
 
     const dataset_mapping = {
         'Multiple Object': 'test_multiple_obj',
@@ -62,6 +62,16 @@ async function eval_loop() {
         const {data, error} = await supabase.storage.from('nonrigid-benchmark').createSignedUrl(matchFileURL, 60)
         if (error) {
             console.error(error)
+
+            // set to failed
+            await prisma.experiment.update({
+                where: {
+                    id: experiment.id
+                },
+                data: {
+                    status: Status.FAILED
+                }
+            })
             continue
         }
         const real_url = data.signedUrl
