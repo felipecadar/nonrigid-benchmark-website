@@ -50,7 +50,7 @@ async function eval_loop() {
 
     if (all_not_processed.length === 0) {
         console.log('No experiments to process')
-        continue
+        return true
     }
 
     for (const experiment of all_not_processed) {
