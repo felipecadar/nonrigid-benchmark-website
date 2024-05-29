@@ -11,21 +11,18 @@ import { createClient } from '@supabase/supabase-js'
 
 // Create a single supabase client for interacting with your database
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
-
+const my_userid = process.env.MY_USER_ID
 const prisma = new PrismaClient()
-const thisDir = fs.realpathSync(process.cwd())
-
-
 
 async function main() {
 
     // update all Status.FAILED to Status.PENDING
     await prisma.experiment.updateMany({
         where: {
-            status: Status.FAILED
+            userId: my_userid,
         },
         data:{
-            status: Status.PENDING
+            public: true,
         }
     })
 
