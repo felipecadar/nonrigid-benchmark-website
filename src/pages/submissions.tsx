@@ -14,7 +14,7 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
   const { mutate: updateExperiment } = api.bench.editSubmission.useMutation({
     onSuccess: () => {
       console.log("Experiment updated successfully");
-      void utils.post.invalidate();
+      void utils.bench.invalidate();
       toast.success("Experiment updated successfully");
       props.setOpen(false);
     },
@@ -27,7 +27,7 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
   const { mutate: deleteExperiment } = api.bench.deleteSubmission.useMutation({
     onSuccess: () => {
       console.log("Experiment deleted successfully");
-      void utils.post.invalidate();
+      void utils.bench.invalidate();
       toast.success("Experiment deleted successfully");
       props.setOpen(false);
     },

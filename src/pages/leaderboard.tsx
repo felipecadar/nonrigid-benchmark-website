@@ -329,10 +329,10 @@ export default function Page() {
     // when changing the dataset, we need to make sure that the split is valid
     if (
       ExperimentsDefinition[selectedDataset] &&
-      !ExperimentsDefinition[selectedDataset][selectedSplit]
+      !ExperimentsDefinition[selectedDataset]![selectedSplit]
     ) {
       setSelectedSplit(
-        Object.keys(ExperimentsDefinition[selectedDataset])[0] ?? "",
+        Object.keys(ExperimentsDefinition[selectedDataset]!)[0]! ?? "",
       );
     }
     // fetch experiments
@@ -341,7 +341,7 @@ export default function Page() {
       return;
     }
 
-    if (!ExperimentsDefinition[selectedDataset][selectedSplit]) {
+    if (!ExperimentsDefinition[selectedDataset]![selectedSplit]) {
       return;
     }
 
@@ -350,7 +350,7 @@ export default function Page() {
     utils.bench.getSplits
       .fetch({
         dataset: selectedDataset,
-        splits: ExperimentsDefinition[selectedDataset][selectedSplit],
+        splits: ExperimentsDefinition[selectedDataset]![selectedSplit]!,
       })
       .then((data) => {
         setExperiments(data);
@@ -400,9 +400,7 @@ export default function Page() {
               <DropDownBox
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 options={Object.keys(
-                  ExperimentsDefinition[selectedDataset]
-                    ? ExperimentsDefinition[selectedDataset]
-                    : {},
+                  ExperimentsDefinition[selectedDataset]!
                 ).map((split) => ({ key: split, value: split }))}
                 selected={selectedSplit}
                 setSelected={setSelectedSplit}
