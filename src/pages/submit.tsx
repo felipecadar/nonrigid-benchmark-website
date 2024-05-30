@@ -43,7 +43,7 @@ export default function Page() {
   const [progress, setProgress] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const { mutate:submitExperiment } = api.post.submission.useMutation({
+  const { mutate:submitExperiment } = api.bench.submission.useMutation({
     onSuccess: () => {
       setFiles([]);
       setIdentifier("");

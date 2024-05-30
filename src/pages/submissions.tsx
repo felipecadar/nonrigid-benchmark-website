@@ -11,7 +11,7 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
   const [isPublic, setIsPublic] = useState(props.experiment?.public ?? false);
 
   const utils = api.useUtils();
-  const { mutate: updateExperiment } = api.post.editSubmission.useMutation({
+  const { mutate: updateExperiment } = api.bench.editSubmission.useMutation({
     onSuccess: () => {
       console.log("Experiment updated successfully");
       void utils.post.invalidate();
@@ -24,7 +24,7 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
     },
   });
 
-  const { mutate: deleteExperiment } = api.post.deleteSubmission.useMutation({
+  const { mutate: deleteExperiment } = api.bench.deleteSubmission.useMutation({
     onSuccess: () => {
       console.log("Experiment deleted successfully");
       void utils.post.invalidate();
@@ -166,7 +166,7 @@ function EditPanel(props: { experiment: Experiment | null, setOpen: (open: boole
 }
 
 export default function Page() {
-  const { data: experiments } = api.post.getSubmissions.useQuery();
+  const { data: experiments } = api.bench.getSubmissions.useQuery();
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedExperiment, setSelectedExperiment] =
     useState<Experiment | null>(null);
