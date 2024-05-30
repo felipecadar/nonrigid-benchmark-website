@@ -106,6 +106,65 @@ export const benchRouter = createTRPCRouter({
   }
   ),
 
+  getSplits: publicProcedure
+  .input(z.object({
+    dataset: z.string(),
+    splits: z.array(z.string()),
+    take: z.number().optional().default(20),
+  }))
+  .query(async ({ input }) => {
+    const { dataset, splits } = input;
+
+    const means_by_name = await db.experiment.groupBy({
+      by: ["name"],
+      where: {
+        dataset,
+        split: {
+          in: splits,
+        },
+        status: "COMPLETED",
+        public: true,
+      },
+      _avg: {
+        ms: true,
+      },
+    });
+
+    const top_means_names = means_by_name
+    .sort((a, b) => (a._avg.ms ?? 0) - (b._avg.ms ?? 0))
+    .slice(0, 20)
+    .map((exp) => exp.name);
+
+    const experiments = await db.experiment.findMany({
+      where: {
+        dataset,
+        split: {
+          in: splits,
+        },
+        name: {
+          in: top_means_names,
+        },
+        status: "COMPLETED",
+        public: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const nameAggr = experiments.reduce((acc, exp) => {
+      if (!acc[exp.name]) {
+        acc[exp.name] = [];
+      }
+
+      acc[exp.name]!.push(exp);
+
+      return acc;
+    }, {} as Record<string, typeof experiments>);
+
+    return nameAggr
+  }),
+
   editSubmission: protectedProcedure
   .input(z.object({
     id: z.string(),
