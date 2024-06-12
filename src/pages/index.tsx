@@ -7,12 +7,12 @@ export default function Home() {
     <>
       <div className="flex flex-col items-center mx-auto max-w-7xl  py-10 px-8">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Nonrigid Matching Benchmark
+          Nonrigid Image Matching Benchmark
         </h1>
 
         <img
           src="/images/teaser.png"
-          alt="Nonrigid Matching Benchmark Teaser"
+          alt="Nonrigid Image Matching Benchmark Teaser"
           // resize to 50% of the original size
           className="mt-8 w-5/6"
         />
