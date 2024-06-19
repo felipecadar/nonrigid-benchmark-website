@@ -3,11 +3,11 @@
 import Link from "next/link";
 
 const authors = [
-  { name: "Felipe Cadar", href: "#", uni_sup: "1,2" },
-  { name: "Renato Martins", href: "#", uni_sup: "2" },
-  { name: "Guilherme Potje", href: "#", uni_sup: "1" },
-  { name: "Cédric Demonceaux", href: "#", uni_sup: "2" },
-  { name: "Erickson R. Nascimento", href: "#", uni_sup: "1,3" },
+  { name: "Felipe Cadar", href: "http://eucadar.com", uni_sup: "1,2" },
+  { name: "Renato Martins", href: "https://renatojmsdh.github.io", uni_sup: "2" },
+  { name: "Guilherme Potje", href: "https://guipotje.github.io", uni_sup: "1" },
+  { name: "Cédric Demonceaux", href: "https://sites.google.com/view/cedricdemonceaux/home", uni_sup: "2" },
+  { name: "Erickson R. Nascimento", href: "https://homepages.dcc.ufmg.br/~erickson/", uni_sup: "1,3" },
 ];
 
 const uni_sup = [
