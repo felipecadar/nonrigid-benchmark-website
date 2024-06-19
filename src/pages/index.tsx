@@ -30,6 +30,7 @@ export default function Home() {
             <a
               key={author.name}
               href={author.href}
+              target="_blank"
               className="text-lg  leading-6 text-gray-900"
             >
               {author.name}
