@@ -30,6 +30,12 @@ const uni_sup = [
   { name: "Microsoft", href: "#", uni_sup: "3" },
 ];
 
+const methods = [
+  { name: "DALF", key: "dalf", href: "#" },
+  { name: "LightGlue", key: "lightglue", href: "#" },
+  { name: "XFeat", key: "xfeat", href: "#" },
+]
+
 export default function Home() {
   const [viewpoint, setViewpoint] = useState(false);
   const [illumination, setIllumination] = useState(false);
@@ -149,14 +155,32 @@ export default function Home() {
             Evaluating Matching Across Deformations
           </h2>
           {/* small observations "Using DALF (CVPR23)" */}
-          <p className="text-sm text-gray-900">
+          {/* <p className="text-sm text-gray-900">
             <Link
               href="https://openaccess.thecvf.com/content/CVPR2023/html/Potje_Enhancing_Deformable_Local_Features_by_Jointly_Learning_To_Detect_and_CVPR_2023_paper.html"
               className="text-sm font-semibold leading-6 text-gray-900"
             >
               Using DALF [CVPR23]
             </Link>
-          </p>
+          </p> */}
+
+          {/* create one button to each method */}
+          <div className="flex items-center gap-x-4">
+          {methods.map((method) => (
+            <button
+              key={method.key}
+              className={clsx(
+                "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+                method.key === methodKey
+                  ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                  : "bg-gray-300 text-gray-900 hover:bg-gray-200",
+              )}
+              onClick={() => setmethodKey(method.key)}
+            >
+              {method.name}
+            </button>
+          ))}
+          </div>
 
           {/* create tree toggle buttons with the labels "+Viewpoint" "+Illumination" */}
           <div className="flex items-center gap-x-4">
@@ -192,7 +216,7 @@ export default function Home() {
               <img
                 src={`/images/${methodKey}/${experimentKey}/1.png`}
                 alt="Matching 1"
-                className="w-5/6"
+                className="w-6/6"
               />
               <p className="text-sm text-gray-900">Low</p>
             </div>
@@ -201,7 +225,7 @@ export default function Home() {
               <img
                 src={`/images/${methodKey}/${experimentKey}/2.png`}
                 alt="Matching 2"
-                className="w-5/6"
+                className="w-6/6"
               />
               <p className="text-sm text-gray-900">Medium</p>
             </div>
@@ -210,7 +234,7 @@ export default function Home() {
               <img
                 src={`/images/${methodKey}/${experimentKey}/3.png`}
                 alt="Matching 3"
-                className="w-5/6"
+                className="w-6/6"
               />
               <p className="text-sm text-gray-900">High</p>
             </div>
