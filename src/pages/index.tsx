@@ -1,22 +1,62 @@
 /* eslint-disable @next/next/no-img-element */
 
+import clsx from "clsx";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const authors = [
   { name: "Felipe Cadar", href: "http://eucadar.com", uni_sup: "1,2" },
-  { name: "Renato Martins", href: "https://renatojmsdh.github.io", uni_sup: "2" },
+  {
+    name: "Renato Martins",
+    href: "https://renatojmsdh.github.io",
+    uni_sup: "2",
+  },
   { name: "Guilherme Potje", href: "https://guipotje.github.io", uni_sup: "1" },
-  { name: "Cédric Demonceaux", href: "https://sites.google.com/view/cedricdemonceaux/home", uni_sup: "2" },
-  { name: "Erickson R. Nascimento", href: "https://homepages.dcc.ufmg.br/~erickson/", uni_sup: "1,3" },
+  {
+    name: "Cédric Demonceaux",
+    href: "https://sites.google.com/view/cedricdemonceaux/home",
+    uni_sup: "2",
+  },
+  {
+    name: "Erickson R. Nascimento",
+    href: "https://homepages.dcc.ufmg.br/~erickson/",
+    uni_sup: "1,3",
+  },
 ];
 
 const uni_sup = [
   { name: "Universidade Federal de Minas Gerais", href: "#", uni_sup: "1" },
-  { name: "Université de Bourgogne", href: "#" , uni_sup: "2" },
-  { name: "Microsoft", href: "#", uni_sup: "3"},
+  { name: "Université de Bourgogne", href: "#", uni_sup: "2" },
+  { name: "Microsoft", href: "#", uni_sup: "3" },
 ];
 
 export default function Home() {
+  const [viewpoint, setViewpoint] = useState(false);
+  const [illumination, setIllumination] = useState(false);
+  const [experimentKey, setExperimentKey] = useState('deformation');
+  const [methodKey, setmethodKey] = useState('dalf');
+
+  const toggleViewpoint = () => {
+    setViewpoint(!viewpoint);
+  };
+
+  const toggleIllumination = () => {
+    setIllumination(!illumination);
+  };
+
+  useEffect(() => {
+    if (viewpoint && illumination) {
+      setExperimentKey('both');
+    } else if (viewpoint) {
+      setExperimentKey('viewpoint');
+    } else if (illumination) {
+      setExperimentKey('illumination');
+    } else {
+      setExperimentKey('deformation');
+    }
+  }
+  , [viewpoint, illumination]);
+
   return (
     <>
       <div className="mx-auto flex max-w-7xl flex-col items-center  px-8 py-10">
@@ -39,7 +79,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-x-2 mt-5">
+        <div className="mt-5 flex flex-col items-center gap-x-2">
           {uni_sup.map((uni) => (
             <a
               key={uni.name}
@@ -94,10 +134,87 @@ export default function Home() {
           >
             Check Learderboard
           </Link>
-            
-          <Link href="https://github.com/verlab/nonrigid-benchmark" className="text-sm font-semibold leading-6 text-gray-900">
-          Get started with the dataset <span aria-hidden="true">→</span>
+
+          <Link
+            href="https://github.com/verlab/nonrigid-benchmark"
+            className="text-sm font-semibold leading-6 text-gray-900"
+          >
+            Get started with the dataset <span aria-hidden="true">→</span>
           </Link>
+        </div>
+
+        {/* lets show some exemples of matching */}
+        <div className="mt-10 flex flex-col items-center gap-y-4">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+            Evaluating Matching Across Deformations
+          </h2>
+          {/* small observations "Using DALF (CVPR23)" */}
+          <p className="text-sm text-gray-900">
+            <Link
+              href="https://openaccess.thecvf.com/content/CVPR2023/html/Potje_Enhancing_Deformable_Local_Features_by_Jointly_Learning_To_Detect_and_CVPR_2023_paper.html"
+              className="text-sm font-semibold leading-6 text-gray-900"
+            >
+              Using DALF [CVPR23]
+            </Link>
+          </p>
+
+          {/* create tree toggle buttons with the labels "+Viewpoint" "+Illumination" */}
+          <div className="flex items-center gap-x-4">
+            <button
+              className={clsx(
+                "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+                viewpoint
+                  ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                  : "bg-gray-300 text-gray-900 hover:bg-gray-200",
+              )}
+              onClick={toggleViewpoint}
+            >
+              Add Viewpoint changes
+            </button>
+
+            <button
+              className={clsx(
+                "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+                illumination
+                  ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                  : "bg-gray-300 text-gray-900 hover:bg-gray-200",
+              )}
+              onClick={toggleIllumination}
+            >
+              Add Illumination changes
+            </button>
+          </div>
+
+          <p className="text-lg text-gray-900">With just deformations!</p>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col items-center gap-y-2">
+              <img
+                src={`/images/${methodKey}/${experimentKey}/1.png`}
+                alt="Matching 1"
+                className="w-5/6"
+              />
+              <p className="text-sm text-gray-900">Low</p>
+            </div>
+
+            <div className="flex flex-col items-center gap-y-2">
+              <img
+                src={`/images/${methodKey}/${experimentKey}/2.png`}
+                alt="Matching 2"
+                className="w-5/6"
+              />
+              <p className="text-sm text-gray-900">Medium</p>
+            </div>
+
+            <div className="flex flex-col items-center gap-y-2">
+              <img
+                src={`/images/${methodKey}/${experimentKey}/3.png`}
+                alt="Matching 3"
+                className="w-5/6"
+              />
+              <p className="text-sm text-gray-900">High</p>
+            </div>
+          </div>
         </div>
       </div>
     </>
