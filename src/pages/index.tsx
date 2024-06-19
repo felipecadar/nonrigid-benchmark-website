@@ -53,7 +53,7 @@ export default function Home() {
         </div>
 
         <img
-          src="/images/teaser_v2.png"
+          src="/images/teaser.png"
           alt="Nonrigid Image Matching Benchmark Teaser"
           // resize to 50% of the original size
           className="mt-8 w-5/6"
