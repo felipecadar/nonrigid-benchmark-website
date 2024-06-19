@@ -51,6 +51,13 @@ export default function Home() {
           ))}
         </div>
 
+        <img
+          src="/images/teaser_v2.png"
+          alt="Nonrigid Image Matching Benchmark Teaser"
+          // resize to 50% of the original size
+          className="mt-8 w-5/6"
+        />
+
         {/* abstract */}
         <div className="mt-10 text-justify text-lg text-gray-900">
           <p>
@@ -78,12 +85,7 @@ export default function Home() {
             a standard and reproducible evaluation for future works.
           </p>
         </div>
-        <img
-          src="/images/teaser.png"
-          alt="Nonrigid Image Matching Benchmark Teaser"
-          // resize to 50% of the original size
-          className="mt-8 w-5/6"
-        />
+
         <div className="mt-10 flex items-center gap-x-6">
           <Link
             href="/leaderboard"
@@ -91,15 +93,10 @@ export default function Home() {
           >
             Check Learderboard
           </Link>
-          <Link
-            href="https://github.com/verlab/nonrigid-benchmark"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Get started with the dataset
+            
+          <Link href="https://github.com/verlab/nonrigid-benchmark" className="text-sm font-semibold leading-6 text-gray-900">
+          Get started with the dataset <span aria-hidden="true">→</span>
           </Link>
-          {/* <a href="#" className="text-sm font-semibold leading-6 text-gray-900"> */}
-            {/* Learn more <span aria-hidden="true">→</span> */}
-          {/* </a> */}
         </div>
       </div>
     </>
