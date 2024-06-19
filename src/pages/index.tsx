@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 const authors = [
-  { name: "Felipe Cadar Chamone", href: "#", uni_sup: "1,2" },
+  { name: "Felipe Cadar", href: "#", uni_sup: "1,2" },
   { name: "Renato Martins", href: "#", uni_sup: "2" },
   { name: "Guilherme Potje", href: "#", uni_sup: "1" },
   { name: "Cédric Demonceaux", href: "#", uni_sup: "2" },
