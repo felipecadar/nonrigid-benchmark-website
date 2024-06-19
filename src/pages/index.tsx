@@ -185,7 +185,7 @@ export default function Home() {
             </button>
           </div>
 
-          <p className="text-lg text-gray-900">With just deformations!</p>
+          <p className="text-lg text-gray-900">Try to change the transformations!</p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col items-center gap-y-2">
