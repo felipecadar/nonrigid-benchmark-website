@@ -152,7 +152,7 @@ export default function Home() {
         {/* lets show some exemples of matching */}
         <div className="mt-10 flex flex-col items-center gap-y-4">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-            Evaluating Matching Across Deformations
+            Visualizing Matches Across Deformations
           </h2>
           {/* small observations "Using DALF (CVPR23)" */}
           {/* <p className="text-sm text-gray-900">
