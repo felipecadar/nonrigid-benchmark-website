@@ -34,13 +34,18 @@ const methods = [
   { name: "DALF", key: "dalf", href: "#" },
   { name: "LightGlue", key: "lightglue", href: "#" },
   { name: "XFeat", key: "xfeat", href: "#" },
-]
+];
 
 export default function Home() {
   const [viewpoint, setViewpoint] = useState(false);
   const [illumination, setIllumination] = useState(false);
-  const [experimentKey, setExperimentKey] = useState('deformation');
-  const [methodKey, setmethodKey] = useState('dalf');
+  const [experimentKey, setExperimentKey] = useState("deformation");
+  const [methodKey, setmethodKey] = useState("dalf");
+
+  const [showGif, setShowGif] = useState(1);
+
+  const gifs = Array.from({ length: 8 }, (_, i) => i + 1);
+
 
   const toggleViewpoint = () => {
     setViewpoint(!viewpoint);
@@ -52,16 +57,15 @@ export default function Home() {
 
   useEffect(() => {
     if (viewpoint && illumination) {
-      setExperimentKey('both');
+      setExperimentKey("both");
     } else if (viewpoint) {
-      setExperimentKey('viewpoint');
+      setExperimentKey("viewpoint");
     } else if (illumination) {
-      setExperimentKey('illumination');
+      setExperimentKey("illumination");
     } else {
-      setExperimentKey('deformation');
+      setExperimentKey("deformation");
     }
-  }
-  , [viewpoint, illumination]);
+  }, [viewpoint, illumination]);
 
   return (
     <>
@@ -166,20 +170,20 @@ export default function Home() {
 
           {/* create one button to each method */}
           <div className="flex items-center gap-x-4">
-          {methods.map((method) => (
-            <button
-              key={method.key}
-              className={clsx(
-                "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
-                method.key === methodKey
-                  ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                  : "bg-gray-300 text-gray-900 hover:bg-gray-200",
-              )}
-              onClick={() => setmethodKey(method.key)}
-            >
-              {method.name}
-            </button>
-          ))}
+            {methods.map((method) => (
+              <button
+                key={method.key}
+                className={clsx(
+                  "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+                  method.key === methodKey
+                    ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                    : "bg-gray-300 text-gray-900 hover:bg-gray-200",
+                )}
+                onClick={() => setmethodKey(method.key)}
+              >
+                {method.name}
+              </button>
+            ))}
           </div>
 
           {/* create tree toggle buttons with the labels "+Viewpoint" "+Illumination" */}
@@ -209,7 +213,9 @@ export default function Home() {
             </button>
           </div>
 
-          <p className="text-lg text-gray-900">Try to change the transformations!</p>
+          <p className="text-lg text-gray-900">
+            Try to change the transformations!
+          </p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col items-center gap-y-2">
@@ -237,6 +243,45 @@ export default function Home() {
                 className="w-6/6"
               />
               <p className="text-sm text-gray-900">High</p>
+            </div>
+          </div>
+
+          {/* More Examples of objects  */}
+          {/* /gif/basket_deformed.gif */}
+
+          <div className="mt-10 flex flex-col items-center gap-y-4">
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+              Deformation Examples
+            </h2>
+
+            {/* buttons */}
+
+            <div className="flex items-center gap-x-4">
+              {gifs.map((gif) => (
+                <button
+                  key={gif}
+                  className={clsx(
+                    "rounded-md  px-3.5 py-2.5 text-sm font-semibold  shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
+                    showGif === gif
+                      ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                      : "bg-gray-300 text-gray-900 hover:bg-gray-200",
+                  )}
+                  onClick={() => setShowGif(gif)}
+                >
+                  {gif}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1">
+              <div className="flex flex-col items-center gap-y-2">
+                <img
+                  src={`/gif/0${showGif}_deformed.gif`}
+                  alt="Deformation Example 1"
+                  className="w-6/6"
+                />
+                <p className="text-xl text-gray-900">Deformation Example {showGif}</p>
+              </div>
             </div>
           </div>
         </div>
