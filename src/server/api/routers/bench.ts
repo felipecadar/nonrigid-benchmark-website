@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -5,7 +6,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import { db } from "~/server/db";
+import db from "~/server/db";
 
 export const benchRouter = createTRPCRouter({
   hello: publicProcedure
@@ -42,7 +43,7 @@ export const benchRouter = createTRPCRouter({
           ms: 0,
           ma: 0,
           mr: 0,
-          status: "PENDING",
+          status: Status.PENDING,
           public: false,
           split: file.split,
           matchFileURL: file.url,

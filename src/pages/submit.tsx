@@ -3,12 +3,13 @@
 import { Button } from "@headlessui/react";
 import { DocumentIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DropDownBox from "~/components/listbox";
 import { api } from "~/utils/api";
 import clsx from "clsx";
 import { toast } from "react-toastify";
-import { createClient } from "~/utils/supabase/client";
+import axios from "axios";
+// import { createClient } from "~/utils/supabase/client";
 const datasets = [
   { key: "single_object", value: "Single Object" },
   { key: "multi_object", value: "Multiple Object" },
@@ -16,45 +17,68 @@ const datasets = [
 ];
 
 const possibleSplits = [
-  "deformation_1", "deformation_2", "deformation_3",
-  "illumination", "viewpoint",
-  "scale_0", "scale_1", "scale_2", "scale_3", "scale_4",
+  "deformation_1",
+  "deformation_2",
+  "deformation_3",
+  "illumination",
+  "viewpoint",
+  "scale_0",
+  "scale_1",
+  "scale_2",
+  "scale_3",
+  "scale_4",
 ];
 
 function validateSplit(fname: string) {
-  const splits = fname.split(".")[0]?.split("-")
+  const splits = fname.split(".")[0]?.split("-");
   if (!splits) {
     return false;
   }
   // make sure all splits are present in the possible splits
-  return splits.every((split) => possibleSplits.includes(split))
+  return splits.every((split) => possibleSplits.includes(split));
 }
 
-
 export default function Page() {
-  const supabase = createClient();
+  // const supabase = createClient();
 
   const { data: sessionData, status } = useSession();
   const [dataset, setDataset] = useState(datasets[0]!.value);
   const [files, setFiles] = useState<File[] | null>(null);
   const [identifier, setIdentifier] = useState<string>("");
-  const [progress, setProgress] = useState<Record<string, string>>({});
+  const [progress, setProgress] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [totalProgres, setTotalProgress] = useState<number>(0);
 
-  const { mutate:submitExperiment } = api.bench.submission.useMutation({
+  const utils = api.useUtils();
+
+  const {mutate: submission} = api.bench.submission.useMutation({
     onSuccess: () => {
-      setFiles([]);
-      setIdentifier("");
-      setSubmitting(false);
+      toast.success("Files submitted successfully");
+      setFiles(null);
       setProgress({});
-      toast.success("Experiment submitted successfully.");
+      setSubmitting(false);
     },
     onError: (error) => {
-      console.error(error);
-      toast.error("Failed to submit the experiment. Please try again later.");
+      console.error("Error submitting files:", error);
+      toast.error("Error submitting files");
       setSubmitting(false);
+    },
+  })
+
+  // update total progress based on progress
+  useEffect(()=> {
+    if (files == null) {
+      return;
     }
-  });
+
+    const total_size = files.reduce((acc, file) => acc + file.size, 0);
+    const total_uploaded = Object.values(progress).reduce(
+      (acc, file) => acc + file,
+      0,
+    );
+    const percentComplete = (total_uploaded * 100) / total_size;
+    setTotalProgress(percentComplete);
+  }, [progress, files]);
 
   async function handleFilesSubmission() {
     if (!files) {
@@ -64,55 +88,49 @@ export default function Page() {
     if (!sessionData) {
       return;
     }
-
     setSubmitting(true);
 
-    const promises = files.map(async (file) => {
+    const uploadPromises = files.map(async (file) => {
+      const { signedUrl } = await utils.client.r2.getSignedUrlForUpload.mutate({
+        expName: identifier,
+        splitName: dataset,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
 
-      // sort and join splits
-      const splits = file.name.split(".")[0]?.split("-")
-      const split = splits!.sort().join("-")
-      const unique_id = crypto.randomUUID();
-      const file_route = `${sessionData.user.id}/${dataset}/${identifier.replaceAll("/", "-")}/${file.name}.${unique_id}`
-
-      const {data, error} = await supabase
-        .storage
-        .from('nonrigid-benchmark')
-        .upload(file_route, file);
-        
-        if (error) {
-          setSubmitting(false);
-          return {
-            split: "",
-            url: "",
+      axios
+        .put(signedUrl, file, {
+          headers: {
+            "Content-Type": file.type,
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.lengthComputable) {
+              setProgress((prev) => ({ ...prev, [file.name]: progressEvent.loaded }));
+            }
           }
-        }
-        setProgress((prev) => ({ ...prev, [file.name]: data.path }));
-        console.log(data, error)
-        
-      return {
-        split,
-        url: data.path,
-      };
-
+        })
+        .then(() => {
+          setProgress((prev) => ({ ...prev, [file.name]: file.size }));
+        })
+        .catch((error) => {
+          console.error("Error uploading file:", error);
+          setSubmitting(false)
+        });
     });
+    await Promise.all(uploadPromises);
 
-    const split_urls = await Promise.all(promises)
-
-    // if any of the files failed to upload, return error
-    if (split_urls.some((split) => !split.url)) {
-      toast.error("Failed to upload the file. Please try again later.");
-      setSubmitting(false);
-      return;
-    }
-  
-    submitExperiment({
-      dataset,
-      files: split_urls,
-      identifier,
+    void submission({
+      dataset: dataset,
+      files: files.map((file) => ({
+        split: file.name.split(".")[0]!,
+        url: sessionData.user.id + "/" + identifier + "/" + dataset + "/" + file.name,
+      })),
+      identifier: identifier,
     });
 
 
+    setSubmitting(false)
   }
 
   if (status === "loading") {
@@ -142,8 +160,8 @@ export default function Page() {
               </h2>
               <p className="mt-1 text-sm leading-6 text-gray-600">
                 Select the dataset and upload the matching files of the desired
-                splits.
-                All results are private by default. You can make them public later.
+                splits. All results are private by default. You can make them
+                public later.
               </p>
             </div>
 
@@ -209,7 +227,7 @@ export default function Page() {
                         multiple
                         accept=".json"
                         onChange={(e) => {
-                        if (e.target.files)
+                          if (e.target.files)
                             setFiles(Array.from(e.target.files));
                         }}
                       />
@@ -220,14 +238,34 @@ export default function Page() {
                     {files && (
                       <ul className="divide-y divide-gray-900/10">
                         {[...files].map((file, index) => (
-                          <li key={index} className={clsx(`flex items-center gap-x-3 py-2`,
-                            validateSplit(file.name) ? "" : "bg-red-200"
-                          )}>
-                            <DocumentIcon className="w-5 h-5 text-gray-900" />
+                          <li
+                            key={index}
+                            className={clsx(
+                              `flex items-center gap-x-3 py-2`,
+                              validateSplit(file.name) ? "" : "bg-red-200",
+                            )}
+                          >
+                            <DocumentIcon className="h-5 w-5 text-gray-900" />
                             <span className="text-sm font-semibold leading-6 text-gray-900">
                               {file.name}
-                              {validateSplit(file.name) ? "" : " - Invalid Split"}
+                              {validateSplit(file.name)
+                                ? ""
+                                : " - Invalid Split"}
                             </span>
+                            
+                            {/* fill space */}
+                            <div className="flex-1" />
+
+                            {/* progress tracker -> x/X Mb  */}
+                            <span className="text-sm font-semibold leading-6 text-gray-900">
+                              {progress[file.name]
+                                ? `${(progress[file.name]! / 1000000).toFixed(
+                                    2,
+                                  )} / ${(file.size / 1000000).toFixed(2)} Mb`
+                                : `0 / ${(file.size / 1000000).toFixed(2)} Mb`}
+                            </span>
+
+
                             {/* remove from list */}
                             <Button
                               onClick={() => {
@@ -236,9 +274,8 @@ export default function Page() {
                                 setFiles(newFiles.length ? newFiles : null);
                               }}
                             >
-                                <XMarkIcon className="w-5 h-5 text-gray-900" />
+                              <XMarkIcon className="h-5 w-5 text-gray-900" />
                             </Button>
-
                           </li>
                         ))}
                       </ul>
@@ -246,25 +283,34 @@ export default function Page() {
 
                     {/* show progress */}
 
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 ">
-                      <div className="bg-indigo-600 h-2.5 rounded-full" style={{width: 
-                        Object.keys(progress).length
-                          ? `${(Object.keys(progress).length / files!.length) * 100}%`
-                          : `0%`
-                      }}></div>
+                    <div className="h-2.5 w-full rounded-full bg-gray-200 ">
+                      <div
+                        className="h-2.5 rounded-full bg-indigo-600"
+                        style={{
+                          width: Object.keys(progress).length
+                            ? `${totalProgres}%`
+                            : `0%`,
+                        }}
+                      ></div>
                     </div>
-
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <button
-                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={(e) => {
                     e.preventDefault();
                     void handleFilesSubmission();
                   }}
-                  disabled={submitting || !files || files.map((file) => validateSplit(file.name)).includes(false) || !identifier}
+                  disabled={
+                    submitting ||
+                    !files ||
+                    files
+                      .map((file) => validateSplit(file.name))
+                      .includes(false) ||
+                    !identifier
+                  }
                 >
                   Send
                 </button>
