@@ -90,7 +90,11 @@ export default function Page() {
     }
     setSubmitting(true);
 
-    const uploadPromises = files.map(async (file) => {
+    // Helper to process files in batches of 5
+    const batchSize = 5;
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      const uploadPromises = batch.map(async (file) => {
       const { signedUrl } = await utils.client.r2.getSignedUrlForUpload.mutate({
         expName: identifier,
         splitName: dataset,
@@ -99,26 +103,27 @@ export default function Page() {
         fileSize: file.size,
       });
 
-      axios
+      return axios
         .put(signedUrl, file, {
-          headers: {
-            "Content-Type": file.type,
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.lengthComputable) {
-              setProgress((prev) => ({ ...prev, [file.name]: progressEvent.loaded }));
-            }
+        headers: {
+          "Content-Type": file.type,
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.lengthComputable) {
+          setProgress((prev) => ({ ...prev, [file.name]: progressEvent.loaded }));
           }
+        }
         })
         .then(() => {
-          setProgress((prev) => ({ ...prev, [file.name]: file.size }));
+        setProgress((prev) => ({ ...prev, [file.name]: file.size }));
         })
         .catch((error) => {
-          console.error("Error uploading file:", error);
-          setSubmitting(false)
+        console.error("Error uploading file:", error);
+        setSubmitting(false);
         });
-    });
-    await Promise.all(uploadPromises);
+      });
+      await Promise.all(uploadPromises);
+    }
 
     void submission({
       dataset: dataset,
@@ -128,9 +133,6 @@ export default function Page() {
       })),
       identifier: identifier,
     });
-
-
-    setSubmitting(false)
   }
 
   if (status === "loading") {

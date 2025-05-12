@@ -1,18 +1,19 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 
-import { PrismaClient, Status } from '@prisma/client'
 import fs from 'fs'
 import spawn from 'child_process'
 import fetch from 'node-fetch'
 
+import { PrismaClient } from "@prisma/client";
+import { PrismaLibSQL } from "@prisma/adapter-libsql";
 
-import { createClient } from '@supabase/supabase-js'
+const adapter = new PrismaLibSQL({
+  url: `${process.env.TURSO_DATABASE_URL}`,
+  authToken: `${process.env.TURSO_AUTH_TOKEN}`,
+});
+const prisma = new PrismaClient({ adapter });
 
 // Create a single supabase client for interacting with your database
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
 const my_userid = process.env.MY_USER_ID
-const prisma = new PrismaClient()
 
 async function main() {
 

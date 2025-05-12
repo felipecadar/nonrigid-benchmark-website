@@ -39,5 +39,5 @@
     ".next/types/**/*.ts",
     "eval_server/**/*.js"
   ],
-  "exclude": ["node_modules", "eval_server"]
+  "exclude": ["node_modules"]
 }
