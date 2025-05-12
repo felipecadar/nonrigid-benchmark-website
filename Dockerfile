@@ -14,7 +14,7 @@ RUN apt update && apt install ffmpeg libsm6 libxext6  -y
 RUN apt update && apt install -y python3 python3-pip
 
 # clone the repositories and install the requirements
-# ARG CACHEBUST=1
+ARG CACHEBUST=1
 RUN git clone https://github.com/verlab/nonrigid-benchmark.git 
 
 # # Install the requirements from the first repository
@@ -43,11 +43,14 @@ RUN npm --version
 # # Install the requirements from the second repository
 RUN npm install prisma --save-dev
 RUN npx prisma generate
+RUN npm install
+RUN npm install -g typescript
+RUN npm install -g tsx
 
 # copy .env
 COPY .env /app/nonrigid-benchmark-website/.env
 # # Run eval_server/database_monitor.js with node
-# CMD ["node", "eval_server/database_monitor.js"]
+# CMD ["npx", "tsx", "eval_server/database_monitor.js"]
 
 # Run this command to build the image with:
 # docker build -t eval_server .

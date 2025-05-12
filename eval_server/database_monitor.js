@@ -26,11 +26,11 @@ const thisDir = fs.realpathSync(process.cwd());
 // https://upload.benchmark.eucadar.com/cmacqy3bx00008s6evii07wwg/SIFT_2048/Single%20Object/deformation_1-illumination-viewpoint.json
 const BASE_URL = "upload.benchmark.eucadar.com";
 
-// async function eval_loop() {
-  const dir = process.env.EXPERIMENT_DIR; //'/volumes/nonrigid_dataset/experiments'
-  const dataset_dir = process.env.DATASET_DIR; //'/volumes/nonrigid_dataset/dataset'
+async function eval_loop() {
+  // const dir = process.env.EXPERIMENT_DIR; //'/volumes/nonrigid_dataset/experiments'
+  // const dataset_dir = process.env.DATASET_DIR; //'/volumes/nonrigid_dataset/dataset'
 
-  const dit = "/app/experiments";
+  const dir = "/app/experiments";
   const dataset_dir = "/app/nonrigid_dataset";
 
   if (!dir) {
@@ -47,10 +47,6 @@ const BASE_URL = "upload.benchmark.eucadar.com";
     "Single Object": "test_single_obj",
     Scale: "test_scale",
   };
-
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
 
   // get oldest experiment with status pending
   const all_not_processed = await prisma.experiment.findMany({
