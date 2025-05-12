@@ -4,25 +4,27 @@ FROM ubuntu:22.04
 WORKDIR /app
 # create volume for the dataset
 VOLUME /app/nonrigid_dataset/
+VOLUME /app/experiments/
 
 # Install Git
-RUN apt-get update && apt-get install -y git
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt update && apt install -y git
+RUN apt update && apt install ffmpeg libsm6 libxext6  -y
 
 # Install Python
-RUN apt-get update && apt-get install -y python3 python3-pip
+RUN apt update && apt install -y python3 python3-pip
 
 # clone the repositories and install the requirements
-RUN git clone https://github.com/felipecadar/nonrigid-benchmark.git 
+# ARG CACHEBUST=1
+RUN git clone https://github.com/verlab/nonrigid-benchmark.git 
 
 # # Install the requirements from the first repository
 RUN pip3 install opencv-python scikit-image scikit-learn numpy matplotlib tqdm
 RUN pip3 install -r nonrigid-benchmark/requirements.txt
 RUN pip3 install -e nonrigid-benchmark/
-RUN python3 -m nonrigid_benchmark.evaluate --help
-
+# RUN python3 -m nonrigid_benchmark.evaluate --help
 
 # # go to the website directory
+# force to update the cache
 RUN git clone https://github.com/felipecadar/nonrigid-benchmark-website.git
 WORKDIR /app/nonrigid-benchmark-website
 
@@ -45,7 +47,7 @@ RUN npx prisma generate
 # copy .env
 COPY .env /app/nonrigid-benchmark-website/.env
 # # Run eval_server/database_monitor.js with node
-CMD ["node", "eval_server/database_monitor.js"]
+# CMD ["node", "eval_server/database_monitor.js"]
 
 # Run this command to build the image with:
 # docker build -t eval_server .

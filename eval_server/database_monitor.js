@@ -26,9 +26,12 @@ const thisDir = fs.realpathSync(process.cwd());
 // https://upload.benchmark.eucadar.com/cmacqy3bx00008s6evii07wwg/SIFT_2048/Single%20Object/deformation_1-illumination-viewpoint.json
 const BASE_URL = "upload.benchmark.eucadar.com";
 
-async function eval_loop() {
+// async function eval_loop() {
   const dir = process.env.EXPERIMENT_DIR; //'/volumes/nonrigid_dataset/experiments'
   const dataset_dir = process.env.DATASET_DIR; //'/volumes/nonrigid_dataset/dataset'
+
+  const dit = "/app/experiments";
+  const dataset_dir = "/app/nonrigid_dataset";
 
   if (!dir) {
     console.error("EXPERIMENT_DIR not set");
@@ -96,50 +99,67 @@ async function eval_loop() {
     fs.writeFileSync(path, buffer);
     console.log(`Downloaded ${matchFileURL} to ${path}`);
 
-    // process file
-    // docker build -t eval_server -f eval_server/Dockerfile .
-    // check if docker image exists, if not, build it
-    const imageName = "eval_server";
-    const imageExists = await new Promise((resolve) => {
-      spawn.exec(`docker images -q ${imageName}`, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`exec error: ${error}`);
-          resolve(false);
-        }
-        if (stdout) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    });
-    if (!imageExists) {
-      console.log(`Docker image ${imageName} does not exist, building...`);
-      await new Promise((resolve, reject) => {
-        spawn.exec(
-          `docker build -t ${imageName} -f ${thisDir}/eval_server/Dockerfile ${thisDir}/eval_server`,
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(`exec error: ${error}`);
-              reject(error);
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
-            resolve(true);
-          },
-        );
-      });
-    } else {
-      console.log(`Docker image ${imageName} exists, skipping build...`);
-    }
+    // // process file
+    // // docker build -t eval_server -f eval_server/Dockerfile .
+    // // check if docker image exists, if not, build it
+    // const imageName = "eval_server";
+    // const imageExists = await new Promise((resolve) => {
+    //   spawn.exec(`docker images -q ${imageName}`, (error, stdout, stderr) => {
+    //     if (error) {
+    //       console.error(`exec error: ${error}`);
+    //       resolve(false);
+    //     }
+    //     if (stdout) {
+    //       resolve(true);
+    //     } else {
+    //       resolve(false);
+    //     }
+    //   });
+    // });
+    // if (!imageExists) {
+    //   console.log(`Docker image ${imageName} does not exist, building...`);
+    //   await new Promise((resolve, reject) => {
+    //     spawn.exec(
+    //       `docker build -t ${imageName} -f ${thisDir}/eval_server/Dockerfile ${thisDir}/eval_server`,
+    //       (error, stdout, stderr) => {
+    //         if (error) {
+    //           console.error(`exec error: ${error}`);
+    //           reject(error);
+    //         }
+    //         console.log(`stdout: ${stdout}`);
+    //         console.error(`stderr: ${stderr}`);
+    //         resolve(true);
+    //       },
+    //     );
+    //   });
+    // } else {
+    //   console.log(`Docker image ${imageName} exists, skipping build...`);
+    // }
 
-    const python = spawn.spawn("docker", [
-      "run",
-      "--rm",
-      "-v",
-      `${dataset_dir}:/app/nonrigid_dataset`,
-      "-v",
-      `${dir}:/app/experiments/`,
+    // const python = spawn.spawn("docker", [
+    //   "run",
+    //   "--rm",
+    //   "-v",
+    //   `${dataset_dir}:/app/nonrigid_dataset`,
+    //   "-v",
+    //   `${dir}:/app/experiments/`,
+    //   "eval_server",
+    //   "python3",
+    //   "-m",
+    //   "nonrigid_benchmark.evaluate",
+    //   `--input`,
+    //   `/app/experiments/${experiment.id}.json`,
+    //   `--output`,
+    //   `/app/experiments/${experiment.id}.out`,
+    //   `--dataset`,
+    //   `/app/nonrigid_dataset/${dataset_mapping[experiment.dataset]}/`,
+    //   `--split`,
+    //   `${experiment.split}`,
+    //   `--nproc`,
+    //   "10",
+    // ]);
+   
+    const python = spawn.spawn("python3", [
       "eval_server",
       "python3",
       "-m",
