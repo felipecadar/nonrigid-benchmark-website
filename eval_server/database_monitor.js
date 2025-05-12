@@ -13,6 +13,7 @@ import fetch from "node-fetch";
 
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import { deleteFile } from "~/utils/r2";
 
 const adapter = new PrismaLibSQL({
   url: `${process.env.TURSO_DATABASE_URL}`,
@@ -41,18 +42,12 @@ async function eval_loop() {
   const dataset_mapping = {
     "Multiple Object": "test_multiple_obj",
     "Single Object": "test_single_obj",
-    "Scale": "test_scale",
-  }
+    Scale: "test_scale",
+  };
 
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
-
-  // const all_not_processed = await prisma.experiment.findMany({
-  //     where: {
-  //         status: "PENDING"
-  //     }
-  // })
 
   // get oldest experiment with status pending
   const all_not_processed = await prisma.experiment.findMany({
@@ -72,11 +67,11 @@ async function eval_loop() {
     return true;
   }
 
-  // console.log(all_not_processed);
-
   for (const experiment of all_not_processed) {
     // download file experiment.matchFileURL
-    const matchFileURL = encodeURI("https://" + BASE_URL + "/" + experiment.matchFileURL);
+    const matchFileURL = encodeURI(
+      "https://" + BASE_URL + "/" + experiment.matchFileURL,
+    );
     const path = `${dir}/${experiment.id}.json`;
     // const datasetPath = `${dataset_dir}/${dataset_mapping[experiment.dataset]}/`;
 
@@ -116,23 +111,24 @@ async function eval_loop() {
         } else {
           resolve(false);
         }
-      }
-      );
+      });
     });
     if (!imageExists) {
       console.log(`Docker image ${imageName} does not exist, building...`);
       await new Promise((resolve, reject) => {
-        spawn.exec(`docker build -t ${imageName} -f ${thisDir}/eval_server/Dockerfile ${thisDir}/eval_server`, (error, stdout, stderr) => {
-          if (error) {
-            console.error(`exec error: ${error}`);
-            reject(error);
-          }
-          console.log(`stdout: ${stdout}`);
-          console.error(`stderr: ${stderr}`);
-          resolve(true);
-        });
-      }
-      );
+        spawn.exec(
+          `docker build -t ${imageName} -f ${thisDir}/eval_server/Dockerfile ${thisDir}/eval_server`,
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(`exec error: ${error}`);
+              reject(error);
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+            resolve(true);
+          },
+        );
+      });
     } else {
       console.log(`Docker image ${imageName} exists, skipping build...`);
     }
@@ -140,15 +136,24 @@ async function eval_loop() {
     const python = spawn.spawn("docker", [
       "run",
       "--rm",
-      "-v", `${dataset_dir}:/app/nonrigid_dataset`,
-      "-v", `${dir}:/app/experiments/`,
+      "-v",
+      `${dataset_dir}:/app/nonrigid_dataset`,
+      "-v",
+      `${dir}:/app/experiments/`,
       "eval_server",
-      "python3", "-m", "nonrigid_benchmark.evaluate",
-      `--input`, `/app/experiments/${experiment.id}.json`,
-      `--output`, `/app/experiments/${experiment.id}.out`,
-      `--dataset`, `/app/nonrigid_dataset/${dataset_mapping[experiment.dataset]}/`,
-      `--split`, `${experiment.split}`,
-      `--nproc`, "10",
+      "python3",
+      "-m",
+      "nonrigid_benchmark.evaluate",
+      `--input`,
+      `/app/experiments/${experiment.id}.json`,
+      `--output`,
+      `/app/experiments/${experiment.id}.out`,
+      `--dataset`,
+      `/app/nonrigid_dataset/${dataset_mapping[experiment.dataset]}/`,
+      `--split`,
+      `${experiment.split}`,
+      `--nproc`,
+      "10",
     ]);
 
     python.stdout.on("data", (data) => {
@@ -162,30 +167,37 @@ async function eval_loop() {
     python.on("error", (error) => {
       console.error(`error: ${error.message}`);
       ended = true;
-      prisma.experiment.update({
-        where: {
-          id: experiment.id,
-        },
-        data: {
-          status: "FAILED",
-        },
-      }).catch((err) => {
-        console.error("Failed to update experiment status to FAILED:", err);
-      });
+      prisma.experiment
+        .update({
+          where: {
+            id: experiment.id,
+          },
+          data: {
+            status: "FAILED",
+          },
+        })
+        .catch((err) => {
+          console.error("Failed to update experiment status to FAILED:", err);
+        });
     });
 
     // on start
     python.on("spawn", () => {
-      prisma.experiment.update({
-        where: {
-          id: experiment.id,
-        },
-        data: {
-          status: "PROCESSING",
-        },
-      }).catch((err) => {
-        console.error("Failed to update experiment status to PROCESSING:", err);
-      });
+      prisma.experiment
+        .update({
+          where: {
+            id: experiment.id,
+          },
+          data: {
+            status: "PROCESSING",
+          },
+        })
+        .catch((err) => {
+          console.error(
+            "Failed to update experiment status to PROCESSING:",
+            err,
+          );
+        });
     });
 
     python.on("close", async (code) => {
@@ -208,6 +220,9 @@ async function eval_loop() {
               status: "FAILED",
             },
           });
+          deleteFile(experiment.matchFileURL).catch((err) => {
+            console.error("Failed to delete file:", err);
+          });
           return;
         }
         // read file + .out
@@ -227,6 +242,10 @@ async function eval_loop() {
           },
         });
         console.log(`ms: ${ms}, ma: ${ma}, mr: ${mr}`);
+
+        deleteFile(experiment.matchFileURL).catch((err) => {
+          console.error("Failed to delete file:", err);
+        });
       } else {
         // update status
         await prisma.experiment.update({
@@ -236,6 +255,9 @@ async function eval_loop() {
           data: {
             status: "FAILED",
           },
+        });
+        deleteFile(experiment.matchFileURL).catch((err) => {
+          console.error("Failed to delete file:", err);
         });
         console.error(`Error processing experiment ${experiment.id}`);
       }

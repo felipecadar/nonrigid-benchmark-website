@@ -1,8 +1,3 @@
-
-import fs from 'fs'
-import spawn from 'child_process'
-import fetch from 'node-fetch'
-
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
 
